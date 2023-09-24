@@ -239,15 +239,15 @@ function tick() {
   }
   
   
-  // requestAnimationFrame(tick);
+  requestAnimationFrame(tick);
 }
 function toggleRunning() {
   running = !running;
   running = true;
-  const interval = setInterval(function() {
-    tick()
-  }, 10);
-  // tick();
+  // const interval = setInterval(function() {
+  //   tick()
+  // }, 10);
+  tick();
 }
 
 initalizeBoids();
