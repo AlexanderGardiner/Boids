@@ -4,10 +4,10 @@ let xResolution = 200;
 let yResolution = 200;
 
 let sensorDistance = 3;
-let sensorSize = 3; // Side of square
-let sensorAngle = Math.PI/8;
-let angleAdjustmentAfterSensorReading = Math.PI/8;
-let amountGreaterForAngleAdjustement = 2000;
+let sensorSize = 5; // Side of square
+let sensorAngle = Math.PI/4;
+let angleAdjustmentAfterSensorReading = Math.PI/15;
+let amountGreaterForAngleAdjustement = 50;
 
 let viewCanvas = document.getElementById("viewCanvas");
 let viewCTX = viewCanvas.getContext("2d");
@@ -62,7 +62,7 @@ async function updateCanvasData() {
 function initalizeBoids() {
   for (let y = 0; y<yResolution; y++) {
     for (let x = 0; x<xResolution; x++) {
-      if (Math.random()>0.99) { 
+      if (Math.random()>0.995) { 
         let boid = new boidCell();
         boids.push(boid);
       }   
@@ -86,21 +86,14 @@ function syncDirections() {
     let averageX = 0;
     let averageY = 0;
     let totalBoidsWithinArea = 0;
-    for (let j=i+1; j<boids.length; j++) {
-      if (((boids[i].y + 10) > (boids[j].y)) &&
-        (boids[i].y < (boids[j].y + 10)) &&
-        ((boids[i].x + 10) > boids[j].x-10) &&
-        (boids[i].x -10 < (boids[j].x + 10))) {
-          boids[i].angle = (boids[i].angle * 4 + boids[j].angle) / 5;
-        }
-    }
+    
 
 
     for (let j=i+1; j<boids.length; j++) {
       if (((boids[i].y + 20) > (boids[j].y)) &&
         (boids[i].y < (boids[j].y + 20)) &&
-        ((boids[i].x + 20) > boids[j].x-20) &&
-        (boids[i].x -20 < (boids[j].x + 20))) {
+        ((boids[i].x + 10) > boids[j].x-10) &&
+        (boids[i].x -10 < (boids[j].x + 10))) {
           totalBoidsWithinArea += 1;
           averageX += boids[j].x;
           averageY += boids[j].y;
@@ -112,8 +105,19 @@ function syncDirections() {
     averageY = averageY/totalBoidsWithinArea;
 
     if (averageX>0 && averageY>0) {
-      boids[i].angle = (Math.atan2(averageY, averageX) + boids[i].angle * 4)/5;
+      boids[i].angle = (Math.atan2(averageY-boids[i].y, averageX-boids[i].x) + boids[i].angle * 10)/11;
     }
+
+    for (let j=i+1; j<boids.length; j++) {
+      if (((boids[i].y + 40) > (boids[j].y)) &&
+        (boids[i].y < (boids[j].y + 40)) &&
+        ((boids[i].x + 20) > boids[j].x-20) &&
+        (boids[i].x -20 < (boids[j].x + 20))) {
+          boids[i].angle = (boids[i].angle * 10 + boids[j].angle) / 11;
+        }
+    }
+
+    
     
     
   }
@@ -162,12 +166,14 @@ function detect(boid) {
   // viewCTX.fillRect(rightSensorX, rightSensorY, sensorSize, sensorSize)
   if (leftSensorValue-amountGreaterForAngleAdjustement>rightSensorValue) {
     if (leftSensorValue>rightSensorValue-amountGreaterForAngleAdjustement) {
-      boid.angle += angleAdjustmentAfterSensorReading;
+      boid.angle -= angleAdjustmentAfterSensorReading;
     }
     
   } else if (leftSensorValue<rightSensorValue-amountGreaterForAngleAdjustement) {
-    boid.angle -= angleAdjustmentAfterSensorReading;
-  } 
+    boid.angle += angleAdjustmentAfterSensorReading;
+  } else {
+    boid.angle += angleAdjustmentAfterSensorReading * (Math.random() - 0.5);
+  }
 
 
 }
@@ -211,11 +217,13 @@ let running = false;
 function tick() {
 
   if (running) {
-    viewCTX.clearRect(0, 0, viewCanvas.width, viewCanvas.height);
+    // viewCTX.clearRect(0, 0, viewCanvas.width, viewCanvas.height);
     currentTickTime = performance.now();
-    document.getElementById("FPS").innerHTML = "FPS: " + (1000/(currentTickTime-previousTickTime)).toFixed(2);;
-    
-
+    document.getElementById("FPS").innerHTML = "FPS: " + (1000/(currentTickTime-previousTickTime)).toFixed(2);
+    viewCTX.fillStyle = "rgb(255, 255, 255)";
+    viewCTX.globalAlpha = 0.3;
+    viewCTX.fillRect(0, 0, viewCanvas.width, viewCanvas.height);
+    viewCTX.globalAlpha = 1;
     viewCTX.fillStyle = "rgb(10, 255, 255)";
     drawBoids();
     updateCanvasData();
@@ -230,15 +238,15 @@ function tick() {
   }
   
   
-  requestAnimationFrame(tick);
+  // requestAnimationFrame(tick);
 }
 function toggleRunning() {
   running = !running;
-  // running = true;
-  // const interval = setInterval(function() {
-  //   tick()
-  // }, 100);
-  tick();
+  running = true;
+  const interval = setInterval(function() {
+    tick()
+  }, 10);
+  // tick();
 }
 
 initalizeBoids();
