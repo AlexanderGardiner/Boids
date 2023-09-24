@@ -1,12 +1,13 @@
 let boids = [];
 let canvasResolutionMultiplier = 1;
-let xResolution = 200;
-let yResolution = 200;
+let xResolution = 500;
+let yResolution = 500;
+let numberOfBoids = 500
 
-let sensorDistance = 3;
-let sensorSize = 5; // Side of square
+let sensorDistance = 15;
+let sensorSize = 20; // Side of square
 let sensorAngle = Math.PI/4;
-let angleAdjustmentAfterSensorReading = Math.PI/15;
+let angleAdjustmentAfterSensorReading = Math.PI/100;
 let amountGreaterForAngleAdjustement = 50;
 
 let viewCanvas = document.getElementById("viewCanvas");
@@ -17,13 +18,15 @@ let canvasData = [];
 viewCanvas.width = xResolution * canvasResolutionMultiplier;
 viewCanvas.height = yResolution * canvasResolutionMultiplier;
 
+let angles = 0;
 class boidCell {
   constructor() {
     this.cellType = "boid";
     this.x = Math.floor(Math.random() * xResolution);
     this.y = Math.floor(Math.random() * xResolution);
 
-    this.angle = Math.random() * 2 * Math.PI;
+    this.angle = Math.random() * (2 * Math.PI) - Math.PI;
+    angles +=this.angle;
     this.speed = 1;
 
     
@@ -60,15 +63,13 @@ async function updateCanvasData() {
 }
 
 function initalizeBoids() {
-  for (let y = 0; y<yResolution; y++) {
-    for (let x = 0; x<xResolution; x++) {
-      if (Math.random()>0.995) { 
-        let boid = new boidCell();
-        boids.push(boid);
-      }   
-    } 
-  }
-}
+  for (let i = 0; y=i<numberOfBoids; i++) {
+    let boid = new boidCell();
+    boids.push(boid);
+  } 
+        
+}   
+
 
 async function drawBoids() {
   boids.forEach(boid => {
@@ -90,10 +91,10 @@ function syncDirections() {
 
 
     for (let j=i+1; j<boids.length; j++) {
-      if (((boids[i].y + 20) > (boids[j].y)) &&
-        (boids[i].y < (boids[j].y + 20)) &&
-        ((boids[i].x + 10) > boids[j].x-10) &&
-        (boids[i].x -10 < (boids[j].x + 10))) {
+      if (((boids[i].y + 50) > (boids[j].y)) &&
+        (boids[i].y < (boids[j].y + 50)) &&
+        ((boids[i].x + 25) > boids[j].x-25) &&
+        (boids[i].x -25 < (boids[j].x + 25))) {
           totalBoidsWithinArea += 1;
           averageX += boids[j].x;
           averageY += boids[j].y;
@@ -105,7 +106,7 @@ function syncDirections() {
     averageY = averageY/totalBoidsWithinArea;
 
     if (averageX>0 && averageY>0) {
-      boids[i].angle = (Math.atan2(averageY-boids[i].y, averageX-boids[i].x) + boids[i].angle * 10)/11;
+      boids[i].angle = (Math.atan2(averageY-boids[i].y, averageX-boids[i].x) + boids[i].angle * 30)/31;
     }
 
     for (let j=i+1; j<boids.length; j++) {
@@ -113,7 +114,7 @@ function syncDirections() {
         (boids[i].y < (boids[j].y + 40)) &&
         ((boids[i].x + 20) > boids[j].x-20) &&
         (boids[i].x -20 < (boids[j].x + 20))) {
-          boids[i].angle = (boids[i].angle * 10 + boids[j].angle) / 11;
+          boids[i].angle = (boids[i].angle * 30 + boids[j].angle) / 31;
         }
     }
 
@@ -123,11 +124,11 @@ function syncDirections() {
   }
 }
 function detect(boid) {
-  let leftSensorX = boid.x + Math.cos(boid.angle - sensorAngle) * sensorDistance-1;
-  let leftSensorY = boid.y + Math.sin(boid.angle - sensorAngle) * sensorDistance-1;
+  let leftSensorX = boid.x - sensorSize/2 + Math.cos(boid.angle - sensorAngle) * sensorDistance;
+  let leftSensorY = boid.y - sensorSize/2 + Math.sin(boid.angle - sensorAngle) * sensorDistance;
   
-  leftSensorX = Math.floor(leftSensorX) * canvasResolutionMultiplier;
-  leftSensorY = Math.floor(leftSensorY) * canvasResolutionMultiplier;
+  leftSensorX = Math.round(leftSensorX) * canvasResolutionMultiplier;
+  leftSensorY = Math.round(leftSensorY) * canvasResolutionMultiplier;
 
   let leftSensorValue = 0;
   for (let y=0; y<sensorSize*canvasResolutionMultiplier; y++) {
@@ -144,8 +145,8 @@ function detect(boid) {
   viewCTX.fillStyle = "red"
   // viewCTX.fillRect(leftSensorX, leftSensorY, sensorSize, sensorSize)
 
-  let rightSensorX = boid.x + Math.cos(boid.angle + sensorAngle) * sensorDistance;
-  let rightSensorY = boid.y + Math.sin(boid.angle + sensorAngle) * sensorDistance;
+  let rightSensorX = boid.x - sensorSize/2 + Math.cos(boid.angle + sensorAngle) * sensorDistance;
+  let rightSensorY = boid.y - sensorSize/2 + Math.sin(boid.angle + sensorAngle) * sensorDistance;
   
   rightSensorX = Math.floor(rightSensorX) * canvasResolutionMultiplier;
   rightSensorY = Math.floor(rightSensorY) * canvasResolutionMultiplier;
@@ -171,8 +172,8 @@ function detect(boid) {
     
   } else if (leftSensorValue<rightSensorValue-amountGreaterForAngleAdjustement) {
     boid.angle += angleAdjustmentAfterSensorReading;
-  } else {
-    boid.angle += angleAdjustmentAfterSensorReading * (Math.random() - 0.5);
+  } else if (leftSensorValue>0 || rightSensorValue>0){
+    boid.angle += 5 * angleAdjustmentAfterSensorReading * Math.sign(Math.random() - 0.5);
   }
 
 
@@ -221,19 +222,19 @@ function tick() {
     currentTickTime = performance.now();
     document.getElementById("FPS").innerHTML = "FPS: " + (1000/(currentTickTime-previousTickTime)).toFixed(2);
     viewCTX.fillStyle = "rgb(255, 255, 255)";
-    viewCTX.globalAlpha = 0.3;
+    viewCTX.globalAlpha = 0.5;
     viewCTX.fillRect(0, 0, viewCanvas.width, viewCanvas.height);
-    viewCTX.globalAlpha = 1;
-    viewCTX.fillStyle = "rgb(10, 255, 255)";
-    drawBoids();
-    updateCanvasData();
+    
 
     syncDirections();
     for (let i=0; i<boids.length;i++) {
       detect(boids[i])
     }
     updateBoidPositions();
-
+    viewCTX.globalAlpha = 1;
+    viewCTX.fillStyle = "rgb(10, 255, 255)";
+    drawBoids();
+    updateCanvasData();
     previousTickTime = currentTickTime;
   }
   
