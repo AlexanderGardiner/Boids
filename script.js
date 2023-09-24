@@ -106,7 +106,7 @@ function syncDirections() {
     averageY = averageY/totalBoidsWithinArea;
 
     if (averageX>0 && averageY>0) {
-      boids[i].angle = (Math.atan2(averageY-boids[i].y, averageX-boids[i].x) + boids[i].angle * 30)/31;
+      boids[i].angle = (Math.atan2(averageY-boids[i].y, averageX-boids[i].x) + boids[i].angle * 20)/21;
     }
 
     for (let j=i+1; j<boids.length; j++) {
@@ -114,7 +114,7 @@ function syncDirections() {
         (boids[i].y < (boids[j].y + 40)) &&
         ((boids[i].x + 20) > boids[j].x-20) &&
         (boids[i].x -20 < (boids[j].x + 20))) {
-          boids[i].angle = (boids[i].angle * 30 + boids[j].angle) / 31;
+          boids[i].angle = (boids[i].angle * 50 + boids[j].angle) / 51;
         }
     }
 
@@ -238,16 +238,13 @@ function tick() {
     previousTickTime = currentTickTime;
   }
   
-  
-  requestAnimationFrame(tick);
 }
 function toggleRunning() {
   running = !running;
   running = true;
-  // const interval = setInterval(function() {
-  //   tick()
-  // }, 10);
-  tick();
+  const interval = setInterval(function() {
+    tick()
+  }, 20);
 }
 
 initalizeBoids();
